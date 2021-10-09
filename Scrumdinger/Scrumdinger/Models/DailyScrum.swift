@@ -44,4 +44,11 @@ extension DailyScrum {
     var data: Data { // this is a computed property
         return Data(title: title, attendees: attendees, lengthInMinutes: Double(lengthInMinutes), color: color)
     }
+    
+    mutating func update(from data: Data) {
+        lengthInMinutes = Int(data.lengthInMinutes)
+        title = data.title
+        attendees = data.attendees
+        color = data.color
+    }
 }

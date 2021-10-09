@@ -10,19 +10,20 @@ import SwiftUI
 struct DetailView: View {
     @Binding var scrum: DailyScrum
     @State private var data: DailyScrum.Data = DailyScrum.Data()
-    @State private var isPresented: Bool = false
+    @State private var isPresented = false
     var body: some View {
         List {
             Section(header: Text("Meeting Info")) {
-                NavigationLink(destination: MeetingView()) {
-                    Label("Start Meeting", systemImage: "timer")
-                        .accessibilityLabel(Text("Start Meeting"))
-                        .font(.headline)
-                    .foregroundColor(.accentColor)
-                }
+                NavigationLink(
+                    destination: MeetingView()) {
+                        Label("Start Meeting", systemImage: "timer")
+                            .font(.headline)
+                            .foregroundColor(.accentColor)
+                            .accessibilityLabel(Text("Start meeting"))
+                    }
                 HStack {
                     Label("Length", systemImage: "clock")
-                        .accessibilityLabel(Text("Meeting Length"))
+                        .accessibilityLabel(Text("Meeting length"))
                     Spacer()
                     Text("\(scrum.lengthInMinutes) minutes")
                 }
@@ -35,7 +36,7 @@ struct DetailView: View {
                 .accessibilityElement(children: .ignore)
             }
             Section(header: Text("Attendees")) {
-                ForEach(scrum.attendees, id:\.self) { attendee in
+                ForEach(scrum.attendees, id: \.self) { attendee in
                     Label(attendee, systemImage: "person")
                         .accessibilityLabel(Text("Person"))
                         .accessibilityValue(Text(attendee))
@@ -44,20 +45,20 @@ struct DetailView: View {
         }
         .listStyle(InsetGroupedListStyle())
         .navigationBarItems(trailing: Button("Edit") {
-                    isPresented = true
-                    data = scrum.data
-                })
+            isPresented = true
+            data = scrum.data
+        })
         .navigationTitle(scrum.title)
         .fullScreenCover(isPresented: $isPresented) {
             NavigationView {
                 EditView(scrumData: $data)
                     .navigationTitle(scrum.title)
                     .navigationBarItems(leading: Button("Cancel") {
-                                            isPresented = false
-                                        }, trailing: Button("Done") {
-                                            isPresented = false
-                                            scrum.update(from: data)
-                                        })
+                        isPresented = false
+                    }, trailing: Button("Done") {
+                        isPresented = false
+                        scrum.update(from: data)
+                    })
             }
         }
     }
