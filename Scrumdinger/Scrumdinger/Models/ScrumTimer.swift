@@ -46,5 +46,68 @@ class ScrumTimer: ObservableObject { // SwiftUI's views watch this class for cha
         activeSpeaker = speakerText
     }
         
+    func startScrum() {
+        changeToSpeaker(at: 0)
+    }
     
+    func stopScrum() {
+        timer?.invalidate()
+        timer = nil
+        timerStopped = true
+    }
+    
+    func skipSpeaker() {
+        changeToSpeaker(at: speakerIndex + 1)
+    }
+    
+    private func changeToSpeaker(at index: Int) {
+        if index > 0 {
+            let previousSpeakerIndex = index - 1
+            speakers[previousSpeakerIndex].isCompleted = true
+        }
+        secondsElapsedForSpeaker = 0
+        guard index < speakers.count else { return }
+        speakerIndex = index
+        activeSpeaker = speakerText
+        
+        secondsElapsed = index * secondsPerSpeaker
+        secondsRemaining = lengthInSeconds - secondsElapsed
+        
+        startDate = Date()
+       // the next block of code updates the seconds elapsed every 1/60th of a second
+        timer = Timer.scheduledTimer(withTimeInterval: frequency, repeats: true) { [weak self] timer in
+            if let self = self, let startDate = self.startDate {
+                let secondsElapsed = Date().timeIntervalSince1970 - startDate.timeIntervalSince1970
+                self.update(secondsElapsed: Int(secondsElapsed))
+            }
+            
+        }
+    }
+    
+    private func update(secondsElapsed: Int) {
+       secondsElapsedForSpeaker = secondsElapsed
+        self.secondsElapsed = secondsPerSpeaker * speakerIndex + secondsElapsedForSpeaker
+        guard secondsElapsed <= secondsPerSpeaker else { return }
+        secondsRemaining = max(lengthInSeconds - self.secondsElapsed, 0)
+        
+        guard !timerStopped else { return }
+        
+        if secondsElapsedForSpeaker >= secondsPerSpeaker {
+            changeToSpeaker(at: speakerIndex + 1)
+            speakerChangedAction?()
+        }
+    }
+    
+    func reset(lengthInMinutes: Int, attendees: [String]) {
+        self.lengthInMinutes = lengthInMinutes
+        self.speakers = attendees.isEmpty ? [Speaker(name: "Player 1", isCompleted: false)] : attendees.map { Speaker(name: $0, isCompleted: false) }
+        secondsRemaining = lengthInSeconds
+        activeSpeaker = speakerText
+    }
+}
+
+extension DailyScrum {
+    var timer: ScrumTimer {
+        ScrumTimer(lengthInMinutes: lengthInMinutes, attendees: attendees) // creates scrumtimer with lengthinminutes and attendees from dailyscrum.swift
+    }
 }
